@@ -17,26 +17,24 @@ class Web(Machine):
     range_spiral_distance_factor = (0.03, 0.04)
     range_spiral_disturbance = (0, 0.02)
 
-    def __init__(self, width, height):
+    def __init__(self):
         super(Web, self).__init__()
-        self.width = width
-        self.height = height
 
     def visualization(self, vp, data={}):
         Viewport = vp
-        vp.add_object(Viewport.Circle(Point(self.width/2, self.height/2), (self.width+self.height)/20, Viewport.WHITE))
+        vp.add_object(Viewport.Circle(Point(50, 50), 5, Viewport.WHITE))
 
 
-def setup_world(w, h):
+def setup_world(w, h, supersample):
     # create world
-    world = World(w, h, Viewport.BLACK)
+    world = World(w, h, supersample=supersample)
 
     # create one viewport that is entire world
-    viewport = Viewport(0, 0, w-1, h-1)
+    viewport = Viewport(0, 0, 99, 99)
     world.add_viewport(viewport, 0, 0, w-1, h-1)
 
     # add Web machine
-    web = Web(w, h)
+    web = Web()
     world.add_machine(web)
     viewport.add_visualization(web.visualization)
 
@@ -46,8 +44,9 @@ def setup_world(w, h):
 def main():
     WIDTH = 500
     HEIGHT = 500
+    SUPERSAMPLE = 2
 
-    world = setup_world(WIDTH, HEIGHT)
+    world = setup_world(WIDTH, HEIGHT, SUPERSAMPLE)
 
     TIME_START_SEC = 0
     TIME_DURATION_SEC = 5
