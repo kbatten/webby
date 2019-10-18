@@ -20,14 +20,23 @@ class Web(Machine):
     def __init__(self):
         super(Web, self).__init__()
         self.center = Point(50, 50)
+        self.attach_point_1 = Point(50, 45)
+        self.attach_point_2 = Point(-50, 10)
+        self.attach_point_3 = Point(10, -50)
 
     def visualization(self, vp):
         Viewport = vp
 
         vp.add_object(Viewport.Text(Point(3,3), self.dyn_t, (170,130,170)))
 
+        # attach points
+        vp.add_object(Viewport.Line(self.center, self.dyn_attach_point_1, 1, self.dyn_attach_point_1_color))
+        vp.add_object(Viewport.Line(self.center, self.dyn_attach_point_2, 1, self.dyn_attach_point_2_color))
+        vp.add_object(Viewport.Line(self.center, self.dyn_attach_point_3, 1, self.dyn_attach_point_3_color))
+
         # select center
         vp.add_object(Viewport.Circle(self.center, self.dyn_select_center_point_rad, Viewport.WHITE))
+
 
     def dyn_t(self):
         return "%0.2f s" % self.t
@@ -36,14 +45,56 @@ class Web(Machine):
         return Point(50 + 10*math.sin(2*self.t), 50 + 10*math.cos(2*self.t))
 
     def dyn_select_center_point_rad(self):
-        ret = 4.0
-        if self.t < 0.5:
-            t = 2.0 * self.t
+        scale = 0.25  # t=0 -> 0.5
+        ret = 3.0
+        if self.t < scale:
+            t = self.t / scale
             ret = 1.0 + ret * self.ease_in_out_sin(t)
-        elif self.t < 1:
-            t = 2.0 * self.t - 1.0
+        elif self.t < scale * 2.0:
+            t = self.t / scale - 1.0
             ret = 1.0 + ret - self.ease_in_out_sin(t)
         return ret
+
+    def dyn_attach_point_1(self):
+        return self.dyn_attach_point_1_3(self.attach_point_1)
+
+    def dyn_attach_point_2(self):
+        return self.dyn_attach_point_1_3(self.attach_point_2)
+
+    def dyn_attach_point_3(self):
+        return self.dyn_attach_point_1_3(self.attach_point_3)
+
+    def dyn_attach_point_1_3(self, attach_point):
+        start = 0.5
+        scale = 0.5 # t=0.5 -> 1.0
+        ret = Point(self.center.x + attach_point.x, self.center.y + attach_point.y)
+        if self.t < start:
+            ret = self.center
+        elif self.t < start + scale:
+            t = (self.t - start) / scale
+            x = self.center.x + attach_point.x * self.ease_in_out_sin(t)
+            y = self.center.y + attach_point.y * self.ease_in_out_sin(t)
+            ret = Point(x, y)
+        return ret
+
+    def dyn_attach_point_1_color(self):
+        return self.dyn_attach_point_1_3_color(self.attach_point_1)
+
+    def dyn_attach_point_2_color(self):
+        return self.dyn_attach_point_1_3_color(self.attach_point_2)
+
+    def dyn_attach_point_3_color(self):
+        return self.dyn_attach_point_1_3_color(self.attach_point_3)
+
+    def dyn_attach_point_1_3_color(self, attach_point):
+        end_point = self.dyn_attach_point_1_3(attach_point)
+        x_2 = (end_point.x-self.center.x)*(end_point.x-self.center.x)
+        y_2 = (end_point.y-self.center.y)*(end_point.y-self.center.y)
+        dist = math.sqrt(x_2 + y_2)
+        if dist > 55:
+            return (192, 0, 0)
+        return (192, 192, 192)
+
 
     @staticmethod
     def ease_in_out_sin(t):
@@ -70,7 +121,7 @@ def main():
     WIDTH = 500
     HEIGHT = 500
     SUPERSAMPLE = 2
-    TIME_DURATION = 5
+    TIME_DURATION = 2
     SECONDS_PER_FRAME = 0.05
 
     TIME_START_SEC = 0
