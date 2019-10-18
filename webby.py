@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
 import sys
-import io
-
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
-import PIL
 
 from mathics.world import World
 from mathics.viewport import Viewport
 from mathics.machines.basic import Machine, Point
+
+from gifserve import write_gif, serve_gif
 
 
 
@@ -46,35 +43,6 @@ def setup_world(w, h):
     return world
 
 
-def write_gif(frames, duration):
-    gif = io.BytesIO()
-    for i in range(len(frames)):
-        frames[i] = frames[i].convert('P', palette = PIL.Image.ADAPTIVE)
-    frames[0].save(gif, format="GIF", save_all=True, append_images=frames[1:], duration=duration/len(frames), loop=0)
-    return gif
-
-def serve_gif(gif):
-    PORT_NUMBER = 8000
-
-    class myHandler(BaseHTTPRequestHandler):
-        #Handler for the GET requests
-        def do_GET(self):
-            self.send_response(200)
-            self.send_header('Content-type','image/gif')
-            self.end_headers()
-
-            gif.seek(0)
-            self.wfile.write(gif.read())
-            return
-
-    try:
-        server = HTTPServer(('', PORT_NUMBER), myHandler)
-        server.serve_forever()
-    except KeyboardInterrupt:
-        server.socket.close()
-
-
-
 def main():
     WIDTH = 500
     HEIGHT = 500
@@ -88,6 +56,7 @@ def main():
 
     gif = write_gif(frames, TIME_DURATION_SEC)
     serve_gif(gif)
+
 
 
 if __name__ == "__main__":
