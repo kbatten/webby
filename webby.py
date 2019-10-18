@@ -7,7 +7,7 @@ from mathics.world import World
 from mathics.viewport import Viewport
 from mathics.machines.basic import Machine, Point
 
-from gifserve import write_gif, serve_gif
+from video import write_webp, serve_webp
 
 
 class Web(Machine):
@@ -122,7 +122,7 @@ def main():
     HEIGHT = 500
     SUPERSAMPLE = 2
     TIME_DURATION = 2
-    SECONDS_PER_FRAME = 0.05
+    SECONDS_PER_FRAME = 0.1
 
     TIME_START_SEC = 0
     TIME_DURATION_SEC = SECONDS_PER_FRAME * math.ceil(TIME_DURATION / SECONDS_PER_FRAME)
@@ -130,13 +130,13 @@ def main():
     world = setup_world(WIDTH, HEIGHT, SUPERSAMPLE)
     frames = world.get_frames(TIME_START_SEC, TIME_DURATION_SEC, SECONDS_PER_FRAME)
 
-    gif = write_gif(frames, TIME_DURATION_SEC)
-    with open("webby.gif", "wb") as f:
-        gif.seek(0)
-        f.write(gif.read())
+    video = write_webp(frames, TIME_DURATION_SEC)
+    with open("webby.webp", "wb") as f:
+        video.seek(0)
+        f.write(video.read())
 
     print("starting server")
-    serve_gif(gif)
+    serve_webp(video)
 
 
 

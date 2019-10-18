@@ -1,6 +1,6 @@
 Webby
 =====
-![webby.gif](webby.gif)
+![webby.gif](webby.webp)
 
 
 Packages
