@@ -131,6 +131,9 @@ def main():
     frames = world.get_frames(TIME_START_SEC, TIME_DURATION_SEC, SECONDS_PER_FRAME)
 
     gif = write_gif(frames, TIME_DURATION_SEC)
+    with open("webby.gif", "wb") as f:
+        gif.seek(0)
+        f.write(gif.read())
 
     print("starting server")
     serve_gif(gif)
