@@ -1,6 +1,6 @@
 Webby
 =====
-![webby.gif](webby.webp)
+![demo](demo.webp)
 
 
 Packages
@@ -8,3 +8,4 @@ Packages
 numpy
 scipy
 pillow
+opencv-python
