@@ -3,6 +3,7 @@
 import sys
 import math
 import time
+import random
 
 from contextlib import contextmanager
 
@@ -23,24 +24,81 @@ class Web(Machine):
 
     def __init__(self):
         super(Web, self).__init__()
-        self.center = Point(50, 50)
-        self.attach_point_1 = Point(50, 45)
-        self.attach_point_2 = Point(-50, 10)
-        self.attach_point_3 = Point(10, -50)
+
+    def orientation(self, a, b, c):
+        x1 = a[0]
+        y1 = a[1]
+        x2 = b[0]
+        y2 = b[1]
+        x3 = c[0]
+        y3 = c[1]
+
+        o = (y2-y1) * (x3-x2) - (y3-y2)*(x2-x1)
+        if o < 0:
+            return -1
+        if o > 0:
+            return 1
+        return 0
+
+    def intersection(self, p1, q1, p2, q2):
+        return self.orientation(p1, q1, p2) != self.orientation(p1, q1, q2) and self.orientation(p2, q2, p1) != self.orientation(p2, q2, q1)
+
+    def cast_ray(self, origin, angle, dist):
+        # for now our walls are the edges of the canvas
+        x = origin.x + dist * math.sin(angle)
+        y = origin.y + dist * math.cos(angle)
+
+        # http://www.dcs.gla.ac.uk/~pat/52233/slides/Geometry1x1.pdf
+        # two vectors intersect if
+        #  p = wall
+        #  q = ray
+        #  1. (p1,q1,p2) and (p1,q1,q2) have different orientations
+        #     (p2,q2,p1) and (p2,q2,q1) have different orientations
+
+        p2 = (origin.x, origin.y)
+        q2 = (x, y)
+
+        # check top
+        p1 = (0, 0)
+        q1 = (99, 0)
+        if self.intersection(p1, q1, p2, q2):
+            return Point(x, y), True
+        # check bottom
+        p1 = (0, 99)
+        q1 = (99, 99)
+        if self.intersection(p1, q1, p2, q2):
+            return Point(x, y), True
+        # check left
+        p1 = (0, 0)
+        q1 = (0, 99)
+        if self.intersection(p1, q1, p2, q2):
+            return Point(x, y), True
+        # check right
+        p1 = (99, 0)
+        q1 = (99, 99)
+        if self.intersection(p1, q1, p2, q2):
+            return Point(x, y), True
+
+        return Point(x, y), False
 
     def visualization(self, vp):
-        Viewport = vp
-
         vp.add_object(Viewport.Text(Point(3,3), self.dyn_t, (170,130,170)))
 
-        # attach points
-        vp.add_object(Viewport.Line(self.center, self.dyn_attach_point_1, 1, self.dyn_attach_point_1_color))
-        vp.add_object(Viewport.Line(self.center, self.dyn_attach_point_2, 1, self.dyn_attach_point_2_color))
-        vp.add_object(Viewport.Line(self.center, self.dyn_attach_point_3, 1, self.dyn_attach_point_3_color))
+        # select a center
+        center_x_perturb = random.random() * 15
+        center_y_perturb = random.random() * 15
+        center = Point(50+center_x_perturb, 50+center_y_perturb)
+        vp.add_object(Viewport.Circle(center, self.dyn_select_center_point_rad, Viewport.WHITE))
 
-        # select center
-        vp.add_object(Viewport.Circle(self.center, self.dyn_select_center_point_rad, Viewport.WHITE))
-
+        # cast rays at ~30 degrees from center
+        angle_offset = (math.pi * 2.0) / self.range_anchor_points[1]
+        for i in range(9):
+            angle_perturb = random.random() * angle_offset / 2.0
+            ray, attached = self.cast_ray(center, i*angle_offset+angle_perturb, 60)
+            if attached:
+                vp.add_object(Viewport.Line(center, ray, 1, (192, 192, 192)))
+            else:
+                vp.add_object(Viewport.Line(center, ray, 1, (192, 0, 0)))
 
     def dyn_t(self):
         return "%0.2f s" % self.t
