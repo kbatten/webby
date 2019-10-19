@@ -2,6 +2,9 @@
 
 import sys
 import math
+import time
+
+from contextlib import contextmanager
 
 from mathics.world import World
 from mathics.viewport import Viewport
@@ -118,6 +121,21 @@ def setup_world(w, h, supersample):
     return world
 
 
+
+@contextmanager
+def timit(message, args=None):
+    start_time = time.time()
+    try:
+        yield(start_time)
+    finally:
+        end_time = time.time()
+        if args:
+            print(message.format(end_time - start_time, *args))
+        else:
+            print(message.format(end_time - start_time))
+
+
+
 def main():
     WIDTH = 500
     HEIGHT = 500
@@ -131,11 +149,22 @@ def main():
 
     world = setup_world(WIDTH, HEIGHT, SUPERSAMPLE)
 
-    frames = world.get_frames(TIME_START_SEC, TIME_DURATION_SEC, SECONDS_PER_FRAME)
-    video = write_webm(frames, TIME_DURATION_SEC, WIDTH, HEIGHT)
+    timit_args = []
+    with timit("webm get_frames {1} frames in {0:.1f} seconds", timit_args):
+        frames = world.get_frames(TIME_START_SEC, TIME_DURATION_SEC, SECONDS_PER_FRAME)
+        timit_args.append(len(frames))
 
-    frames = world.get_frames(TIME_START_SEC, TIME_DURATION_SEC, DEMO_SECONDS_PER_FRAME)
-    demo = write_webp(frames, TIME_DURATION_SEC)
+    with timit("webm write_webm {0:.1f} seconds"):
+        video = write_webm(frames, TIME_DURATION_SEC, WIDTH, HEIGHT)
+
+    timit_args = []
+    with timit("webp get_frames {1} frames in {0:.1f} seconds", timit_args):
+        frames = world.get_frames(TIME_START_SEC, TIME_DURATION_SEC, DEMO_SECONDS_PER_FRAME)
+        timit_args.append(len(frames))
+
+    with timit("webp write_webp {0:.1f} seconds"):
+        demo = write_webp(frames, TIME_DURATION_SEC)
+
     with open("demo.webp", "wb") as f:
         demo.seek(0)
         f.write(demo.read())
